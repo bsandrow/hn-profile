@@ -17,7 +17,7 @@ binmode(STDOUT, ':utf8');
 
 my $mech = WWW::Mechanize->new(
     timeout => 10,
-    agent => 'hn-user-info/0.1',
+    agent => 'hn-profile/0.1',
 );
 my $result = GetOptions(
     'h|help'            => \my $help,
@@ -51,7 +51,7 @@ sub output_json {
 
 sub usage {
     print <<USAGE
-usage: hn-user-info
+usage: hn-profile
 
 options:
     -h --help               This help message.
