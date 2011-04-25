@@ -1,0 +1,163 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use WWW::Mechanize;
+use Try::Tiny;
+
+use Carp            qw| croak       |;
+use JSON            qw| encode_json |;
+use Getopt::Long    qw| GetOptions  |;
+
+my $user_id  = undef;
+my $password = undef;
+
+binmode(STDOUT, ':utf8');
+
+my $mech = WWW::Mechanize->new(
+    timeout => 10,
+    agent => 'hn-user-info/0.1',
+);
+my $result = GetOptions(
+    'h|help'            => \my $help,
+    's|saved-articles'  => \my $saved_articles,
+    'v|verbose+'        => \my $verbose,
+    'f|file=s'          => \my $filename,
+);
+
+my $articles_counter;
+my $data = {};
+
+do { usage(); die "\n"; } unless $result;
+do { usage(); exit; } if $help;
+$saved_articles = [] if $saved_articles;
+
+login();
+if ($saved_articles) {
+    $articles_counter = 0;
+    saved_articles();
+    $data->{saved_articles} = $saved_articles;
+}
+output_json();
+
+sub output_json {
+    local *STDOUT;
+    if ($filename) {
+        open STDOUT, '>', $filename or die "Error: $!";
+    }
+    print encode_json($data);
+}
+
+sub usage {
+    print <<USAGE
+usage: hn-user-info
+
+options:
+    -h --help               This help message.
+    -s --saved-articles     Pull in the saved articles.
+    -v --verbose            Define the verbosity level. Default is 0.  Multiple
+                            flags accumulate. At verbosity level 1, there are
+                            are progress indicators and warnings. At verbosity
+                            level 2, there the data being scraped is printed
+                            out as it's being scraped.
+    -f --file=FILE          Where to dump the JSON output. Defaults to STDOUT.
+USAGE
+}
+
+sub tidy_url {
+    my ($url) = @_;
+    if (ref $url) {
+        die "Unknown ref: $url" unless (ref $url) eq 'WWW::Mechanize::Link';
+        $url = $url->url_abs()->as_string();
+    }
+    return $url;
+}
+
+sub saved_articles {
+    no warnings "recursion";
+    my $url = shift || "http://news.ycombinator.com/saved?id=$user_id";
+ 
+    my $articles_count_prev = $articles_counter + 1;
+    $articles_counter += 30;
+    print "Fetching links $articles_count_prev through $articles_counter\n" if $verbose;
+
+    try {
+        $mech->get($url);
+    } catch {
+        croak($_) unless $_ =~ /Error GETing/;
+        $url = tidy_url($url);
+        print "Warning: Failed to fetch '$url'. Trying again...\n" if $verbose;
+        $articles_counter -= 30;
+        saved_articles($url);
+        return;
+    };
+    unless ($mech->success()) {
+        $url = tidy_url($url);
+        print STDERR "Error fetching '$url'\n";
+        return undef;
+    }
+
+    my @links;
+    my @content = ($mech->content() =~ m!
+        <td\ class="title">(.*?)</td>.*?
+        <td\ class="subtext">(.*?)</td>!gsmx);
+
+    unless (scalar(@content) % 2 == 0) {
+        print STDERR "Error: Odd number of elements scraped from content. ",
+                     "Aborting further scraping.\n";
+        return undef;
+    }
+
+    while(@content) {
+        my $title_data    = shift @content;
+        my $subtext_data  = shift @content;
+
+        unless ($title_data && $subtext_data) {
+            print STDERR "Error: Got undefs for scraped string data. ",
+                         "Scraping may be broken.\n";
+            next;
+        }
+
+        my ($url, $title) = ($title_data =~ m#<a href="([^"]+?)">\s*(.*?)\s*</a>#sm);
+        my ($score)       = ($subtext_data =~ m#<span id=score_\d+>\s*(\d+ points?)\s*</span>#sm);
+        my ($user, $time) = ($subtext_data =~ m#<a href="user\?id=(.*?)">[^<]+</a>\s*(.*?)\s*\|#sm);
+        my ($comments)    = ($subtext_data =~ m#<a href="(item\?id=\d+)">#sm);
+        push @links, {
+            user    => $user,
+            title   => $title,
+            time    => $time,
+            score   => $score,
+            url     => $url,
+            comments=> $comments,
+        };
+
+        print <<MSG if $verbose > 1;
+Title   : $title
+User    : $user
+Time    : $time
+Score   : $score
+Url     : $url
+Comments: $comments
+----------------------------
+MSG
+    }
+    push @$saved_articles, @links;
+
+    my $more_url = $mech->find_link(text => 'More');
+    saved_articles($more_url) if $more_url;
+}
+
+sub login {
+    $mech->get('http://news.ycombinator.com/news');
+    return undef unless $mech->success();
+
+    $mech->follow_link( text_regex => qr/^login$/ );
+    return undef unless $mech->success();
+
+    $mech->submit_form(
+        form_number => 1,
+        fields      => { u => $user_id, p => $password, },
+    );
+    return $mech->success();
+}
