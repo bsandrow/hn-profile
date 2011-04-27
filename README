@@ -11,32 +11,29 @@ OPTIONS
 
     -v --verbose
 
-            An accumulating counter that starts at 0.  The
-            higher, the verbosity level, the more information
-            that gets spit back at you.
+            An accumulating counter that starts at 0.  The higher the verbosity
+            level, the more information that gets spit back at you. Note that
+            this may get mixed in with the JSON output if you aren't sending it
+            to a file.
 
     -f --file=FILE
 
-            The file to dump the JSON to. By default, the JSON
-            will be printed to STDOUT, so if you want to send
-            it anywhere else, you'll have to use this option.
+            The file to dump the JSON to. By default, the JSON will be printed
+            to STDOUT, so if you want to send it anywhere else, you'll have to
+            use this option.
 
     -s --saved-articles
 
-            Parse the 'saved articles' section of your Hacker
-            News profile. This requires that you set the
-            $user_id and $password globals in the script.
-            (Note: Login info handling is on the todo list to
-            improve.)
+            Parse the 'saved articles' section of your Hacker News profile.
+            This requires that you set the $user_id and $password globals in the
+            script.  (Note: Login info handling is on the todo list to improve.)
 
 DESCRIPTION
-    A command to extract the information from your user
-    profile. It's especially useful for parsing out your
-    'saved articles' (aka the list of links that you've
-    upvoted) because they are only displayed 30/page, and the
-    'next' link is seemingly auto-generated each time (and
-    expires), so there is no easy way to extract this data
-    without walking the list from most to least recent.
+    A command to extract the information from your user profile. It's especially
+    useful for parsing out your 'saved articles' (aka the list of links that
+    you've upvoted) because they are only displayed 30/page, and the 'next' link
+    is seemingly auto-generated each time (and expires), so there is no easy way
+    to extract this data without walking the list from most to least recent.
 
 DEPENDENCY TREE
     hn-profile
