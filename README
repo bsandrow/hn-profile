@@ -42,4 +42,9 @@ DEPENDENCY TREE
     `-- Try::Tiny
     `-- WWW::Mechanize
         `-- LWP::UserAgent
-    
+
+LICENSE
+    See LICENSE
+
+AUTHOR
+    Brandon Sandrowicz <brandon@sandrowicz.org>
