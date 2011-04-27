@@ -78,9 +78,17 @@ sub saved_articles {
     no warnings "recursion";
     my $url = shift || "http://news.ycombinator.com/saved?id=$user_id";
  
-    my $articles_count_prev = $articles_counter + 1;
+    if(scalar(@$saved_articles) != $articles_counter) {
+        die "Error: \$saved_articles != \$articles_counter\n"
+          . "        This means that some articles on the previous page were not scraped!\n";
+
+    }
+
     $articles_counter += 30;
-    print "Fetching links $articles_count_prev through $articles_counter\n" if $verbose;
+    if ($verbose) {
+        my $articles_prev = $articles_counter - 29;
+        print "Fetching links $articles_count_prev through $articles_counter\n";
+    }
 
     try {
         $mech->get($url);
