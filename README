@@ -29,11 +29,12 @@ OPTIONS
             script.  (Note: Login info handling is on the todo list to improve.)
 
 DESCRIPTION
-    A command to extract the information from your user profile. It's especially
-    useful for parsing out your 'saved articles' (aka the list of links that
-    you've upvoted) because they are only displayed 30/page, and the 'next' link
-    is seemingly auto-generated each time (and expires), so there is no easy way
-    to extract this data without walking the list from most to least recent.
+    A command to extract the information from your Hacker News[1] user profile.
+    It's especially useful for parsing out your 'saved articles' (aka the list
+    of links that you've upvoted) because they are only displayed 30/page, and
+    the 'next' link is seemingly auto-generated each time (and expires), so
+    there is no easy way to extract this data without walking the list from
+    most to least recent.
 
 DEPENDENCY TREE
     hn-profile
@@ -48,3 +49,6 @@ LICENSE
 
 AUTHOR
     Brandon Sandrowicz <brandon@sandrowicz.org>
+
+REFERENCES
+    1. Hacker News, http://news.ycombinator.com
