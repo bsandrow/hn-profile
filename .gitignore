@@ -1,1 +1,4 @@
 .*.sw[opmq]
+Build
+_build/
+MYMETA.yml
