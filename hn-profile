@@ -27,16 +27,13 @@ my $result = GetOptions(
     'f|file=s'          => \my $filename,
 );
 
-my $articles_counter = 0;
-my $data = {};
-
 do { usage(); exit 1; } unless $result;
 do { usage(); exit;   } if $help;
-$saved_articles = [] if $saved_articles;
 
 login();
 
-$data->{saved_articles} = $saved_articles   if $saved_articles and saved_articles();
+my $data = {};
+$data->{saved_articles} = saved_articles()  if $saved_articles;
 $data->{general_info}   = general_info()    if $general_info;
 
 output_json();
@@ -111,19 +108,20 @@ sub tidy_url {
 
 sub saved_articles {
     no warnings "recursion";
-    my $url = shift || "http://news.ycombinator.com/saved?id=$user_id";
 
-    if(scalar(@$saved_articles) != $articles_counter) {
-        die "Error: \$saved_articles != \$articles_counter\n"
+    my ($articles, $counter, $url) = @_;
+    $articles ||= [];
+    $counter  ||= 0;
+    $url      ||= "http://news.ycombinator.com/saved?id=$user_id";
+
+    if(scalar(@$articles) != $counter) {
+        die "Error: \$articles != \$counter\n"
           . "        This means that some articles on the previous page were not scraped!\n";
 
     }
 
-    $articles_counter += 30;
-    if ($verbose) {
-        my $articles_prev = $articles_counter - 29;
-        print "Fetching links $articles_count_prev through $articles_counter\n";
-    }
+    $counter += 30;
+    print "Fetching links @{[ $counter - 29 ]} through $counter\n" if $verbose;
 
     try {
         $mech->get($url);
@@ -131,9 +129,8 @@ sub saved_articles {
         croak($_) unless $_ =~ /Error GETing/;
         $url = tidy_url($url);
         print "Warning: Failed to fetch '$url'. Trying again...\n" if $verbose;
-        $articles_counter -= 30;
-        saved_articles($url);
-        return;
+        $counter -= 30;
+        return saved_articles($articles, $counter, $url);
     };
     unless ($mech->success()) {
         $url = tidy_url($url);
@@ -185,10 +182,10 @@ Comments: $comments
 ----------------------------
 MSG
     }
-    push @$saved_articles, @links;
+    push @$articles, @links;
 
     my $more_url = $mech->find_link(text => 'More');
-    saved_articles($more_url) if $more_url;
+    return saved_articles($articles, $counter, $more_url) if $more_url;
 }
 
 sub login {
