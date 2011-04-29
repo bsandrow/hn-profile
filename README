@@ -28,6 +28,11 @@ OPTIONS
             This requires that you set the $user_id and $password globals in the
             script.  (Note: Login info handling is on the todo list to improve.)
 
+    -i --general-info
+
+            Parse out the generic information from your HN profile (e.g. karma
+            score, avg. rating, etc).
+
 DESCRIPTION
     A command to extract the information from your Hacker News[1] user profile.
     It's especially useful for parsing out your 'saved articles' (aka the list

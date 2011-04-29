@@ -22,7 +22,7 @@ my $mech = WWW::Mechanize->new(
 my $result = GetOptions(
     'h|help'            => \my $help,
     's|saved-articles'  => \my $saved_articles,
-    'g|general-info'    => \my $general_info,
+    'i|general-info'    => \my $general_info,
     'v|verbose+'        => \my $verbose,
     'f|file=s'          => \my $filename,
 );
