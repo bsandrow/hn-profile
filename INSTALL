@@ -1,0 +1,12 @@
+METHOD 1: BUILD.PL
+
+    perl Build.PL
+    ./Build
+    ./Build install
+
+METHOD 2:
+
+    cpanm WWW::Mechanize
+    cpanm Try::Tiny
+    cp hn-profile $PATH/
+
