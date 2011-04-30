@@ -4,41 +4,53 @@ use strict;
 use warnings;
 
 use WWW::Mechanize;
-use Try::Tiny;
 
 use Carp            qw| croak       |;
-use JSON            qw| encode_json |;
 use Getopt::Long    qw| GetOptions  |;
+use JSON            qw| encode_json |;
+use Try::Tiny       qw| try catch   |;
 
-my $user_id  = undef;
-my $password = undef;
+use vars qw|
+    user_id   password
+    mech      general_info
+    help      saved_articles
+    verbose   general_info
+    filename
+|;
 
-binmode(STDOUT, ':utf8');
+sub init
+{
+    binmode(STDOUT, ':utf8');
 
-my $mech = WWW::Mechanize->new(
-    timeout => 10,
-    agent => 'hn-profile/0.1',
-);
-my $result = GetOptions(
-    'h|help'            => \my $help,
-    's|saved-articles'  => \my $saved_articles,
-    'i|general-info'    => \my $general_info,
-    'v|verbose+'        => \my $verbose,
-    'f|file=s'          => \my $filename,
-);
+    $mech = WWW::Mechanize->new(
+        timeout => 10,
+        agent   => 'hn-profile/0.5',
+    );
 
-do { usage(); exit 1; } unless $result;
-do { usage(); exit;   } if $help;
+    my $result = GetOptions(
+        'h|help'            => \$help,
+        's|saved-articles'  => \$saved_articles,
+        'i|general-info'    => \$general_info,
+        'v|verbose+'        => \$verbose,
+        'f|file=s'          => \$filename,
+    );
 
-login();
+    do { usage(); exit 1; } unless $result;
+    do { usage(); exit;   } if $help;
+}
 
-my $data = {};
-$data->{saved_articles} = saved_articles()  if $saved_articles;
-$data->{general_info}   = general_info()    if $general_info;
+sub run
+{
+    init();
+    login();
+    my $data = {};
+    $data->{saved_articles} = saved_articles()  if $saved_articles;
+    $data->{general_info}   = general_info()    if $general_info;
+    output_json($data);
+}
 
-output_json();
-
-sub general_info {
+sub general_info
+{
     my $url = shift || "http://news.ycombinator.com/user?id=$user_id";
     $mech->get($url);
     unless ($mech->success()) {
@@ -55,15 +67,17 @@ sub general_info {
     return \%info;
 }
 
-sub output_json {
+sub output_json
+{
+    my ($data) = @_;
     local *STDOUT;
-    if ($filename) {
-        open STDOUT, '>', $filename or die "Error: $!";
-    }
+    open STDOUT, '>', $filename or die "Error: $!" if $filename;
     print encode_json($data);
+    close STDOUT;
 }
 
-sub usage {
+sub usage
+{
     print <<USAGE
 usage: hn-profile [options]
 
@@ -97,7 +111,8 @@ options:
 USAGE
 }
 
-sub tidy_url {
+sub tidy_url
+{
     my ($url) = @_;
     if (ref $url) {
         die "Unknown ref: $url" unless (ref $url) eq 'WWW::Mechanize::Link';
@@ -106,7 +121,8 @@ sub tidy_url {
     return $url;
 }
 
-sub saved_articles {
+sub saved_articles
+{
     no warnings "recursion";
 
     my ($articles, $counter, $url) = @_;
@@ -188,7 +204,8 @@ MSG
     return saved_articles($articles, $counter, $more_url) if $more_url;
 }
 
-sub login {
+sub login
+{
     $mech->get('http://news.ycombinator.com/news');
     return undef unless $mech->success();
 
@@ -201,3 +218,5 @@ sub login {
     );
     return $mech->success();
 }
+
+run();
