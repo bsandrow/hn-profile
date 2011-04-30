@@ -73,11 +73,13 @@ sub output_json
 {
     my ($data) = @_;
     if ($filename) {
-        local *STDOUT;
-        open STDOUT, '>', $filename or die "Error: $!";
+        open my $fh, '>', $filename or die "Error: $!";
+        print $fh encode_json($data);
+        close $fh if $filename;
     }
-    print encode_json($data);
-    close STDOUT if $filename;
+    else {
+        print encode_json($data);
+    }
 }
 
 sub usage
@@ -166,7 +168,7 @@ sub saved_articles
     unless (scalar(@content) % 2 == 0) {
         print STDERR "Error: Odd number of elements scraped from content. ",
                      "Aborting further scraping.\n";
-        return undef;
+        return $articles;
     }
 
     while(@content) {
@@ -205,7 +207,7 @@ MSG
     push @$articles, @links;
 
     my $more_url = $mech->find_link(text => 'More');
-    return saved_articles($articles, $counter, $more_url) if $more_url;
+    return $more_url ? saved_articles($articles, $counter, $more_url) : $articles;
 }
 
 sub login
