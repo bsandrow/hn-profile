@@ -1,12 +1,21 @@
-METHOD 1: BUILD.PL
+If you have Perl 5.10 or greater, Module::Build should be included in the
+distribution allowing you to use the Build.PL to install this:
 
     perl Build.PL
     ./Build
     ./Build install
 
-METHOD 2:
+Barring that, you'll need to install the dependencies.
+E.g.:
 
     cpanm WWW::Mechanize
     cpanm Try::Tiny
-    cp hn-profile $PATH/
+    cpanm JSON
+
+And then just copy the hn-profile script to whereever you plan to run it from.
+
+Note:
+    If you don't know what any of this is, I would suggest just searching for
+    'perlbrew' online and following some instructions to get it installed and
+    setup. Then make sure to install 'cpanm' (aka CPAN Minus).
 
