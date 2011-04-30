@@ -11,11 +11,11 @@ use JSON            qw| encode_json |;
 use Try::Tiny       qw| try catch   |;
 
 use vars qw|
-    user_id   password
-    mech      general_info
-    help      saved_articles
-    verbose   general_info
-    filename
+    $user_id   $password
+    $mech      $general_info
+    $help      $saved_articles
+    $verbose   $general_info
+    $filename
 |;
 
 sub init
@@ -70,10 +70,12 @@ sub general_info
 sub output_json
 {
     my ($data) = @_;
-    local *STDOUT;
-    open STDOUT, '>', $filename or die "Error: $!" if $filename;
+    if ($filename) {
+        local *STDOUT;
+        open STDOUT, '>', $filename or die "Error: $!";
+    }
     print encode_json($data);
-    close STDOUT;
+    close STDOUT if $filename;
 }
 
 sub usage
