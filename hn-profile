@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 
+use DateTime;
 use WWW::Mechanize;
 
 use Carp            qw| croak       |;
@@ -132,6 +133,7 @@ sub saved_articles
     no warnings "recursion";
 
     my ($articles, $counter, $url) = @_;
+    my $today;
     $articles ||= [];
     $counter  ||= 0;
     $url      ||= "http://news.ycombinator.com/saved?id=$user_id";
@@ -147,6 +149,7 @@ sub saved_articles
 
     try {
         $mech->get($url);
+        $today = DateTime->today();
     } catch {
         croak($_) unless $_ =~ /Error GETing/;
         $url = tidy_url($url);
@@ -185,10 +188,15 @@ sub saved_articles
         my ($score)       = ($subtext_data =~ m#<span id=score_\d+>\s*(\d+ points?)\s*</span>#sm);
         my ($user, $time) = ($subtext_data =~ m#<a href="user\?id=(.*?)">[^<]+</a>\s*(.*?)\s*\|#sm);
         my ($comments)    = ($subtext_data =~ m#<a href="(item\?id=\d+)">#sm);
+
+        my $day = $today->clone();
+        $day->add(days => (-1 * $1)) if $time =~ /(\d+) days? ago/;
+
         push @links, {
             user    => $user,
             title   => $title,
             time    => $time,
+            day     => $day->iso8601(),
             score   => $score,
             url     => $url,
             comments=> $comments,

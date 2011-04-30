@@ -45,10 +45,9 @@ DESCRIPTION
 DEPENDENCY TREE
     hn-profile
     `-- JSON
-    |   `-- JSON::XS
     `-- Try::Tiny
     `-- WWW::Mechanize
-        `-- LWP::UserAgent
+    `-- DateTime
 
 LICENSE
     See LICENSE

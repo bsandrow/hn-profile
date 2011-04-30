@@ -8,6 +8,7 @@ distribution allowing you to use the Build.PL to install this:
 Barring that, you'll need to install the dependencies.
 E.g.:
 
+    cpanm DateTime
     cpanm WWW::Mechanize
     cpanm Try::Tiny
     cpanm JSON

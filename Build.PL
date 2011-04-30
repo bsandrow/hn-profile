@@ -13,6 +13,7 @@ Module::Build->new(
         'JSON'          => 0,
         'Carp'          => 0,
         'Getopt::Long'  => 0,
+        'DateTime'      => 0,
     },
     script_files        => 'hn-profile',
 )->create_build_script();
