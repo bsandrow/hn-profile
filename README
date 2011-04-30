@@ -25,8 +25,6 @@ OPTIONS
     -s --saved-articles
 
             Parse the 'saved articles' section of your Hacker News profile.
-            This requires that you set the $user_id and $password globals in the
-            script.  (Note: Login info handling is on the todo list to improve.)
 
     -i --general-info
 
@@ -40,6 +38,9 @@ DESCRIPTION
     the 'next' link is seemingly auto-generated each time (and expires), so
     there is no easy way to extract this data without walking the list from
     most to least recent.
+
+    Your user_id and password should be specified in your ~/.netrc file. Type
+    'man netrc' for more information about the file format.
 
 DEPENDENCY TREE
     hn-profile

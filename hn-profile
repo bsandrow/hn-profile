@@ -27,6 +27,8 @@ sub init
         agent   => 'hn-profile/0.5',
     );
 
+    netrc();
+
     my $result = GetOptions(
         'h|help'            => \$help,
         's|saved-articles'  => \$saved_articles,
@@ -219,6 +221,29 @@ sub login
         fields      => { u => $user_id, p => $password, },
     );
     return $mech->success();
+}
+
+sub netrc
+{
+    die "Error: Could not find ~/.netrc file!" unless -f "$ENV{HOME}/.netrc";
+    die "Error: Could not read ~/.netrc file!" unless -r "$ENV{HOME}/.netrc";
+
+    open my $fh, '<', "$ENV{HOME}/.netrc"
+        or die "Error: Unable to open '$ENV{HOME}/.netrc': $!";
+
+    my @machine_matches = grep { /machine\s+news\.ycombinator\.com/ } <$fh>;
+    die "Error: No matches for news.ycombinator.com in ~/.netrc."
+        unless scalar(@machine_matches);
+
+    my $last_match = pop @machine_matches;
+
+    $user_id = $1 if ($last_match =~ /\slogin\s+([^\s]+)/);
+    die "Error: Could not parse user_id from ~/.netrc" unless $user_id;
+
+    $password = $1 if ($last_match =~ /\spassword\s+([^\s]+)/);
+    die "Error: Could not parse password from ~/.netrc" unless $password;
+
+    close $fh;
 }
 
 run();
